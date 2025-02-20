@@ -12,12 +12,18 @@ jobs:
     # Non-master branches should be ran manually
     if: ${{ github.event_name != 'schedule' || github.ref_name == 'master' }}
 
+    strategy:
+      matrix:
+        march: ["x86-64-v2", "x86-64-v3"]
+
     steps:
       - uses: actions/checkout@v4
        # Setup ccache
       - run: pacman -Syu --noconfirm ccache
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.march }}
       # Compile Proton 
       - name: Compile
         run: |
@@ -34,10 +40,12 @@ jobs:
           sed -i 's/build_gstreamer="false"/build_gstreamer="true"/' proton-tkg.cfg
           sed -i 's/lib32_gstreamer="false"/lib32_gstreamer="true"/' proton-tkg.cfg
           sed -i 's/wayland_driver="false"/wayland_driver="true"/' proton-tkg.cfg
+          # Add -march flag
+          sed -i -E 's/^(_(GCC|CROSS)_FLAGS=")([^"]*)(")/\1\3 -march=${{ matrix.march }}\4/' proton-tkg-profiles/advanced-customization.cfg
           touch tarplz
           yes|./proton-tkg.sh
       - name: Archive the artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: proton-tkg-build
+          name: proton-tkg-build-${{ matrix.march }}
           path: proton-tkg/built/*.tar
