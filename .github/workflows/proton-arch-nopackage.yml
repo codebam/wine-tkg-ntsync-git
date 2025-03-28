@@ -29,7 +29,7 @@ jobs:
       - name: Compile
         run: |
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
-          pacman -Syu --noconfirm base-devel sudo lib32-jack2
+          pacman -Syu --noconfirm base-devel sudo lib32-jack2 cargo
           curl -o /usr/include/linux/ntsync.h https://raw.githubusercontent.com/torvalds/linux/v6.14/include/uapi/linux/ntsync.h
           useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           chown user -R ..
